@@ -111,7 +111,7 @@ export default function LoginPage() {
                         <div>
                             <div className="flex items-center justify-between mb-2">
                                 <Label htmlFor="password" className="text-gray-700 font-medium">Şifre</Label>
-                                <Link href="/auth/forgot-password" className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
+                                <Link href="/forgot-password" className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
                                     Şifremi unuttum
                                 </Link>
                             </div>

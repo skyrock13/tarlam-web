@@ -16,6 +16,8 @@ type DevicesContextType = {
   createDevice: (device: DeviceInsert) => Promise<any>;
   updateDevice: (id: string, updates: DeviceUpdate) => Promise<any>;
   deleteDevice: (id: string) => Promise<void>;
+  softDeleteDevice: (id: string) => Promise<void>;
+  hardDeleteDevice: (id: string) => Promise<void>;
   getImageUrl: (filename: string | null) => string | undefined;
   canUserAccessDevice: (deviceId: string) => boolean;
 };
