@@ -18,7 +18,7 @@ import {
   WindIcon
 } from 'lucide-react'
 import { LoadingSection } from '@/components/shared/loading';
-import { isGrowingParameters } from '@/lib/utils';
+import { isGrowingParameters } from '@/lib/utils/helpers';
 import { useState } from 'react';
 import EditPlantForm from '@/components/plants/edit-plant-detail-form';
 import { Button } from '@/components/ui/button';

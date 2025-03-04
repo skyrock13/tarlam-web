@@ -25,7 +25,8 @@ import {
 } from '@/components/ui/select';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Label } from '../ui/label';
-import { toast } from "@/components/ui/use-toast"
+import { useToast } from "@/components/ui/use-toast";
+import { useSupabase } from '@/providers/supabase-provider';
 
 
 interface DeviceFormProps {
@@ -33,9 +34,6 @@ interface DeviceFormProps {
 	onSuccess: () => void;
 	open: boolean;
 	initialDevice?: DeviceWithDetails | null;  // Keep this for editing
-	users: Database['public']['Tables']['users']['Row'][] | null; // Allow null
-	isAdmin: boolean; // Admin kontrolü
-	currentUser: Database['public']['Tables']['users']['Row'] | null;
 }
 
 export default function DeviceForm({
@@ -43,11 +41,9 @@ export default function DeviceForm({
 	onSuccess,
 	open,
 	initialDevice,
-	users,
-	isAdmin,
-	currentUser
 }: DeviceFormProps) {
 	const { createDevice, updateDevice } = useDevicesContext();
+	const { user } = useSupabase();
 	const [name, setName] = useState('');
 	const [serialNumber, setSerialNumber] = useState('');
 	const [modelId, setModelId] = useState('');
@@ -61,9 +57,44 @@ export default function DeviceForm({
 		Database['public']['Tables']['device_models']['Row'][]
 	>([]);
 	const [modelsLoaded, setModelsLoaded] = useState(false);
+	const [users, setUsers] = useState<Database['public']['Tables']['users']['Row'][] | null>(null);
+	const [isAdmin, setIsAdmin] = useState(false);
+	const { toast } = useToast();
 
 	const supabaseRef = useRef(createClientComponentClient<Database>());
 	const supabase = supabaseRef.current;
+
+	// Admin kontrolü
+	useEffect(() => {
+		if (user) {
+			const adminStatus = 
+				user.app_metadata?.admin === true || 
+				user.user_metadata?.is_admin === true || 
+				user.user_metadata?.is_super_admin === true;
+			
+			setIsAdmin(adminStatus);
+		}
+	}, [user]);
+
+	// Kullanıcıları yükle
+	useEffect(() => {
+		const fetchUsers = async () => {
+			if (!open || !isAdmin) return;
+			
+			const { data, error } = await supabase
+				.from('users')
+				.select('id, first_name, last_name, email');
+				
+			if (error) {
+				setError('Failed to load users');
+				return;
+			}
+			
+			setUsers(data || []);
+		};
+		
+		fetchUsers();
+	}, [open, supabase, isAdmin]);
 
 	useEffect(() => {
 		const fetchModels = async () => {
@@ -102,18 +133,18 @@ export default function DeviceForm({
 			setModelId(initialDevice.model_id);
 			setFirmwareVersion(initialDevice.firmware_version || '');
 			setUserId(initialDevice.user_devices && initialDevice.user_devices[0] ? initialDevice.user_devices[0].user_id : null);
-		} else if (!isAdmin) {
-			// Adding a new device (non-admin user only) - clear other fields
+		} else {
+			// Adding a new device - reset fields
 			setName('');
 			setModelId('');
 			setFirmwareVersion('');
-			setUserId(null); // No user selection for non-admins
+			setUserId(null);
 			setNewUserName('');
 			setNewUserSurname('');
-		} // No else case needed:  If !initialDevice && isAdmin, the form shouldn't even open.
+		}
 
 		setError(null);
-	}, [initialDevice, open, isAdmin]);  // Depend on isAdmin
+	}, [initialDevice, open]);
 
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -222,13 +253,13 @@ export default function DeviceForm({
             else if (!isAdmin)
             {
                 //Assign the device to current user.
-                if (!currentUser || !currentUser.id) {
+                if (!user || !user.id) {
                     setError("Current user is not set");
                     return;
                 }
                 const { error } = await supabase
                     .from('user_devices')
-                    .insert({ user_id: currentUser.id, device_id: deviceId });
+                    .insert({ user_id: user.id, device_id: deviceId });
                 if (error) throw error;
             }
 
@@ -250,7 +281,7 @@ export default function DeviceForm({
 					<DialogDescription>
 						{initialDevice
 							? 'Modify the device details.'
-							: 'Enter the serial number of the device.'}  {/* Simplified description */}
+							: 'Enter the serial number of the device.'}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -391,7 +422,6 @@ export default function DeviceForm({
 						Cancel
 					</Button>
 					<Button type="submit" disabled={isSubmitting} variant="default" form="deviceForm">
-						{/* Simpler button text */}
 						{initialDevice ? 'Save Changes' : 'Add Device'}
 					</Button>
 				</DialogFooter>

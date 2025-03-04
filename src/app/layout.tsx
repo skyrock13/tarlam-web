@@ -2,6 +2,7 @@
 import '@/styles/globals.css'
 import { Inter } from 'next/font/google'
 import SupabaseProvider from '@/providers/supabase-provider'
+import { I18nProvider } from '@/providers/i18n-provider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -18,7 +19,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <SupabaseProvider>{children}</SupabaseProvider>
+        <SupabaseProvider>
+          <I18nProvider defaultLocale="tr">
+            {children}
+          </I18nProvider>
+        </SupabaseProvider>
       </body>
     </html>
   )

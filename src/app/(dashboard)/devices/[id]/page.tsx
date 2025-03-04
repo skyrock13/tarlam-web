@@ -29,7 +29,7 @@ import { useToast } from "@/components/ui/use-toast";
 import DeviceForm from '@/components/devices/device-form';
 import FirmwareUpdateModal from '@/components/devices/firmware-update-modal';
 import DeviceShareModal from '@/components/devices/device-share-modal';
-import TarlamMetricsViewer from '@/components/devices/metrics-viewer';
+import EnhancedMetricsViewer from '@/components/devices/metrics-viewer';
 import MaintenanceLog from '@/components/devices/maintenance-log';
 import { createClient } from '@supabase/supabase-js';
 
@@ -693,7 +693,7 @@ export default function DeviceDetailPage({ params }: PageProps) {
               {loadingMetrics ? (
                 <LoadingSection text="Metrikler yükleniyor..." />
               ) : (
-                <TarlamMetricsViewer 
+                <EnhancedMetricsViewer 
                   metrics={metrics} 
                   nodes={device.device_nodes || []} 
                   deviceId={id} 

@@ -1,3 +1,4 @@
+// src/app/(auth)/login/page.tsx'in bir bölümü şöyle olabilir
 'use client';
 
 import { useState } from 'react';
@@ -10,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Database } from '@/lib/types/supabase';
 import { Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
+import { useI18n } from '@/providers/i18n-provider';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -18,6 +20,7 @@ export default function LoginPage() {
     const [error, setError] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
+    const { t } = useI18n();
 
     const supabase = createClientComponentClient<Database>();
 
@@ -48,11 +51,11 @@ export default function LoginPage() {
 
     return (
         <div className="flex min-h-screen bg-white">
-            {/* Kayıt kısmı - sol tarafta 1/3 genişlikte */}
+            {/* Sol taraf - kayıt teşvik alanı */}
             <div className="hidden md:block w-full md:w-1/3 bg-emerald-500 relative">
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-white">
                     <div className="max-w-md text-center">
-                        <h2 className="text-3xl font-bold mb-4">Yeni misiniz?</h2>
+                        <h2 className="text-3xl font-bold mb-4">{t.auth.register.title}</h2>
                         <p className="text-white/90 mb-8">
                             Hemen kayıt olun ve Tarlam'ın sunduğu tüm fırsatlardan yararlanmaya başlayın!
                         </p>
@@ -65,7 +68,7 @@ export default function LoginPage() {
                 </div>
             </div>
             
-            {/* Login form - sağ tarafta 2/3 genişlikte */}
+            {/* Sağ taraf - login formu */}
             <div className="w-full md:w-2/3 flex flex-col items-center justify-center p-8">
                 <div className="w-full max-w-md">
                     {/* Logo */}
@@ -81,8 +84,8 @@ export default function LoginPage() {
                     </div>
                     
                     {/* Login Header */}
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Hoş geldiniz!</h1>
-                    <p className="text-gray-600 mb-8">Hesabınıza erişmek için giriş yapın</p>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{t.auth.login.title}</h1>
+                    <p className="text-gray-600 mb-8">{t.auth.login.subtitle}</p>
                     
                     {/* Error Alert */}
                     {error && (
@@ -95,7 +98,9 @@ export default function LoginPage() {
                     {/* Login Form */}
                     <form onSubmit={handleLogin} className="space-y-5">
                         <div>
-                            <Label htmlFor="email" className="text-gray-700 mb-2 block font-medium">E-posta</Label>
+                            <Label htmlFor="email" className="text-gray-700 mb-2 block font-medium">
+                                {t.auth.login.email}
+                            </Label>
                             <Input
                                 type="email"
                                 id="email"
@@ -110,9 +115,11 @@ export default function LoginPage() {
                         
                         <div>
                             <div className="flex items-center justify-between mb-2">
-                                <Label htmlFor="password" className="text-gray-700 font-medium">Şifre</Label>
+                                <Label htmlFor="password" className="text-gray-700 font-medium">
+                                    {t.auth.login.password}
+                                </Label>
                                 <Link href="/forgot-password" className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
-                                    Şifremi unuttum
+                                    {t.auth.login.forgotPassword}
                                 </Link>
                             </div>
                             <div className="relative">
@@ -147,11 +154,11 @@ export default function LoginPage() {
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Giriş yapılıyor...
+                                    {t.common.loading}
                                 </div>
                             ) : (
                                 <div className="flex items-center justify-center">
-                                    Giriş Yap
+                                    {t.auth.login.submit}
                                     <ArrowRight className="ml-2 h-5 w-5" />
                                 </div>
                             )}
@@ -160,9 +167,9 @@ export default function LoginPage() {
                     
                     {/* Mobile Sign Up Link */}
                     <div className="mt-8 text-center md:hidden">
-                        <p className="text-gray-600 mb-3">Henüz bir hesabınız yok mu?</p>
+                        <p className="text-gray-600 mb-3">{t.auth.register.alreadyHaveAccount}</p>
                         <Link href="/register" className="text-emerald-600 font-medium hover:underline">
-                            Hemen Kaydol
+                            {t.auth.register.submit}
                         </Link>
                     </div>
                 </div>

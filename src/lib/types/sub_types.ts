@@ -72,7 +72,7 @@ export interface DeviceSpecifications {
   }
   
   // Props tanımı
-  export interface TarlamMetricsViewerProps {
+  export interface EnhancedMetricsViewerProps {
     metrics: DeviceMetric[];
     nodes: DeviceNode[];
     deviceId: string;

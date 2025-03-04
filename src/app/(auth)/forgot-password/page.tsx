@@ -36,7 +36,8 @@ export default function ForgotPasswordPage() {
     try {
       // Basic validation
       if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-        setError("Lütfen geçerli bir e-posta adresi girin");
+        setError("Please enter a valid email address");
+        setLoading(false);
         return;
       }
 
@@ -48,21 +49,21 @@ export default function ForgotPasswordPage() {
       if (error) {
         setError(error.message);
         toast({
-          title: 'Hata',
+          title: 'Error',
           description: error.message,
           variant: 'destructive',
         });
       } else {
         setStep(2); // Show success message
         toast({
-          title: 'E-posta Gönderildi',
-          description: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.',
+          title: 'Email Sent',
+          description: 'Password reset link has been sent to your email address.',
         });
       }
     } catch (error: any) {
       setError(error.message);
       toast({
-        title: 'Beklenmeyen Hata',
+        title: 'Unexpected Error',
         description: error.message,
         variant: 'destructive',
       });
@@ -81,16 +82,16 @@ export default function ForgotPasswordPage() {
               className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
-              Giriş Sayfasına Dön
+              Return to Login
             </Link>
           </div>
           <CardTitle className="text-2xl font-bold text-center">
-            Şifremi Unuttum
+            Forgot Password
           </CardTitle>
           <CardDescription className="text-center">
             {step === 1 
-              ? 'E-posta adresinizi girin ve şifre sıfırlama bağlantısı alın' 
-              : 'E-posta adresinize şifre sıfırlama bağlantısı gönderdik'}
+              ? 'Enter your email address to receive a password reset link' 
+              : 'We have sent a password reset link to your email address'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -108,7 +109,7 @@ export default function ForgotPasswordPage() {
               <form onSubmit={handleResetPassword} className="space-y-4">
                 <div className="space-y-1">
                   <label htmlFor="email" className="text-sm font-medium">
-                    E-posta Adresi
+                    Email Address
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -132,10 +133,10 @@ export default function ForgotPasswordPage() {
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      İşleniyor...
+                      Processing...
                     </>
                   ) : (
-                    'Şifre Sıfırlama Bağlantısı Gönder'
+                    'Send Password Reset Link'
                   )}
                 </Button>
               </form>
@@ -146,16 +147,16 @@ export default function ForgotPasswordPage() {
                 <CheckCircle className="h-16 w-16 text-green-500" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-lg font-medium">E-posta Gönderildi</h3>
+                <h3 className="text-lg font-medium">Email Sent</h3>
                 <p className="text-sm text-muted-foreground">
-                  <strong>{email}</strong> adresine şifre sıfırlama bağlantısı gönderdik. 
-                  Lütfen e-postanızı kontrol edin ve bağlantıya tıklayarak şifrenizi sıfırlayın.
+                  We have sent a password reset link to <strong>{email}</strong>.
+                  Please check your email and click the link to reset your password.
                 </p>
                 <Alert className="mt-4 bg-blue-50 border-blue-200">
                   <Info className="h-4 w-4 text-blue-500" />
                   <AlertDescription className="text-sm text-blue-700">
-                    E-posta 5 dakika içinde gelmezse, spam klasörünü kontrol edin 
-                    veya tekrar deneyin.
+                    If you don't receive the email within 5 minutes, please check your spam folder
+                    or try again.
                   </AlertDescription>
                 </Alert>
               </div>
@@ -166,7 +167,7 @@ export default function ForgotPasswordPage() {
           {step === 1 ? (
             <div className="text-sm text-center">
               <Link href="/login" className="text-primary font-medium hover:underline">
-                Giriş sayfasına dön
+                Return to login page
               </Link>
             </div>
           ) : (
@@ -175,7 +176,7 @@ export default function ForgotPasswordPage() {
               className="w-full"
               variant="outline"
             >
-              Giriş Sayfasına Dön
+              Return to Login
             </Button>
           )}
         </CardFooter>

@@ -22,7 +22,9 @@ export type DeviceWithDetails = Device & {
     device_categories: DeviceCategory;
   }) | null;
   imageUrl?: string;
-  user_devices: { user: User; is_primary_owner: boolean | null }[] | null;
+  user_devices: {
+	  user_id: SetStateAction<string | null>; user: User; is_primary_owner: boolean | null 
+}[] | null;
   device_structure: DeviceStructure[] | null;
   device_nodes?: DeviceNode[] | null;
 };
@@ -105,7 +107,10 @@ export function useDevices() {
       //   )
       // ) {        
       //   query = query.filter('user_devices.user_id', 'eq', user.id);
-      // }      
+      // }
+
+      // Filtreleme: Silinen cihazları hariç tut
+      query = query.not('metadata', 'cs', '{"deleted":{"is_deleted":true}}');
       
       const { data, error: fetchError } = await query;
       if (fetchError) throw fetchError;
@@ -315,7 +320,104 @@ export function useDevices() {
     }
   }, [supabase, getImageUrl, toast, canUserAccessDevice]);
 
-  const deleteDevice = useCallback(async (id: string) => {
+  const softDeleteDevice = useCallback(async (id: string) => {
+    if (!canUserAccessDevice(id)) {
+      const errorMsg = "Bu cihaza erişim izniniz yok.";
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: errorMsg
+      });
+      throw new Error(errorMsg);
+    }
+    
+    if (!user) {
+      const errorMsg = "Kullanıcı oturumu bulunamadı.";
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: errorMsg
+      });
+      throw new Error(errorMsg);
+    }
+    
+    try {
+      const currentTime = new Date().toISOString();
+      
+      // 1. Cihazın metadata alanını güncelle, silindi olarak işaretle
+      const { error: updateError } = await supabase
+        .from('devices')
+        .update({
+          metadata: {
+            deleted: {
+              is_deleted: true,
+              deleted_at: currentTime,
+              deleted_by: user.id
+            }
+          }
+        })
+        .eq('id', id);
+        
+      if (updateError) throw updateError;
+      
+      // 2. İlişkili düğümleri işaretle
+      await supabase
+        .from('device_nodes')
+        .update({
+          metadata: {
+            device_deleted: true,
+            device_deleted_at: currentTime
+          },
+          is_active: false
+        })
+        .eq('device_id', id);
+      
+      // 3. Cihaz yapısını devre dışı bırak
+      await supabase
+        .from('device_structure')
+        .update({
+          is_active: false
+        })
+        .eq('device_id', id);
+      
+      // 4. Kullanıcı-cihaz ilişkilerini kaldır
+      await supabase
+        .from('user_devices')
+        .delete()
+        .eq('device_id', id);
+      
+      // 5. Aktivite kaydı oluştur
+      await supabase
+        .from('device_activity_log')
+        .insert({
+          device_id: id,
+          user_id: user.id,
+          activity_type: 'device_deleted',
+          timestamp: currentTime,
+          details: { deleted_at: currentTime }
+        });
+      
+      // Lokal durumu güncelle
+      setDevices(prevDevices => prevDevices.filter(device => device.id !== id));
+      lastFetchTimeRef.current = Date.now();
+      
+      toast({
+        title: "Başarılı",
+        description: "Cihaz başarıyla silindi."
+      });
+    } catch (e: any) {
+      setError(e?.message);
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: `Cihaz silinirken bir sorun oluştu: ${e?.message}`
+      });
+      throw e;
+    }
+  }, [supabase, toast, canUserAccessDevice, user]);
+
+  // Eski deleteDevice fonksiyonunu hardDeleteDevice olarak yeniden adlandır
+  const hardDeleteDevice = useCallback(async (id: string) => {
     if (!canUserAccessDevice(id)) {
       const errorMsg = "Bu cihaza erişim izniniz yok.";
       toast({
@@ -343,7 +445,7 @@ export function useDevices() {
       setDevices(prevDevices => prevDevices.filter(device => device.id !== id));
       toast({
         title: "Başarılı",
-        description: "Cihaz başarıyla silindi."
+        description: "Cihaz tamamen silindi."
       });
     } catch (e: any) {
       setError(e?.message);
@@ -355,6 +457,11 @@ export function useDevices() {
       throw e;
     }
   }, [supabase, toast, canUserAccessDevice]);
+
+  // deleteDevice fonksiyonu varsayılan olarak softDeleteDevice'ı çağırır
+  const deleteDevice = useCallback(async (id: string) => {
+    return softDeleteDevice(id);
+  }, [softDeleteDevice]);
 
   useEffect(() => {
     if (user) {
@@ -372,6 +479,8 @@ export function useDevices() {
     createDevice,
     updateDevice,
     deleteDevice,
+    softDeleteDevice,
+    hardDeleteDevice,
     refreshDevices: (force = true) => fetchDevices(force),
     getImageUrl,
     canUserAccessDevice

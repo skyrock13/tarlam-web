@@ -25,7 +25,7 @@ import {
   } from '@/components/ui/select'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Label } from '@/components/ui/label';
-import { isValidPlantType, isValidRootSubcategory } from '@/lib/utils';
+import { isValidPlantType, isValidRootSubcategory } from '@/lib/utils/helpers';
 
 type Plant = NonNullable<ReturnType<typeof usePlants>['plants'][0]>;
 
